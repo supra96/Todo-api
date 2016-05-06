@@ -1,1 +1,5 @@
 node_modules/
+data/*.sqlite 
+upload.js
+functions.js
+playground/*.sqlite

@@ -3,7 +3,7 @@ var bodyParser=require('body-parser');
 var app=express();
 var todoNextId=1;
 var _=require('underscore');
-
+var db=require('./db.js');
 app.use(bodyParser.json());
 var todos= []                     //array
 // 	{id:1, //int type
@@ -28,10 +28,29 @@ app.get('/', function (req,res){ //or if its not defined, then use port 3000
 // GET /todos       get all of the todos
 //Get /todos/:id    get individual todo
 app.get('/todos',function (req,res){
-res.json(todos);
+var queryParams=req.query;
+	var filteredTodos=todos;//set it equal to the todos array
+	if(queryParams.hasOwnProperty('completed')&&queryParams.completed==='true'){
+		filteredTodos=_.where(filteredTodos,{completed: true});//again, 2 parameters second one is the object with completed set to true
+}else if(queryParams.hasOwnProperty('completed')&&queryParams.completed==='false'){
+	filteredTodos=_.where(filteredTodos,{completed: false});
+}
+
+	//if hasproperty &&completed==='true'
+	//filteredTodos=_.where(filteredTodos, ?)   //?- object used to filter the todos
+	//else if has property && completed if 'false'
+
+
+	res.json(filteredTodos);//every todo item is returned no matter what query parameter you have
 });
 //GET/todos/:id
 app.get('/todos/:id', function (req,res){
+	
+
+
+
+
+
 	var todoId=parseInt(req.params.id,10);
 	var matchedTodo=_.findWhere(todos,{id: todoId}); //first param is the array, second is the object to search through that array
 	//^this line just replaced the 4 below. boooM
@@ -59,17 +78,24 @@ app.get('/todos/:id', function (req,res){
 //Post/ todos
 app.post('/todos', function (req, res){
 	var body=_.pick(req.body,'description','completed');
-	//errString="Homie, that some bad ass request. Try again."
-	if(!_.isBoolean(body.completed)|| !_.isString(body.description)||body.description.trim().length===0){// run if body.completed is not a boolean or the other things you can see...
-		return res.status(400).send();//400 means req cant be completed as bad data was provided
-	//return errString;
-	}
-	//console.log('description : '+body.description);
-	//add id to the field
-	body.id= todoNextId++;
-	//push body into the array
-	todos.push(body);
-	res.json(body);
+	db.todo.create(body).then(function (todo){ //post to the database
+		res.json(todo.toJSON());
+	},function (e){
+		res.status(400).json(e);
+
+	});
+
+	// //errString="Homie, that some bad ass request. Try again."
+	// if(!_.isBoolean(body.completed)|| !_.isString(body.description)||body.description.trim().length===0){// run if body.completed is not a boolean or the other things you can see...
+	// 	return res.status(400).send();//400 means req cant be completed as bad data was provided
+	// //return errString;
+	// }
+	// //console.log('description : '+body.description);
+	// //add id to the field
+	// body.id= todoNextId++;
+	// //push body into the array
+	// todos.push(body);
+	// res.json(body);
 
 });
 app.delete('/todos/:id', function(req, res){
@@ -110,8 +136,12 @@ _.extend(matchedTodo,validAttributes);//first is the original destination object
 res.json(matchedTodo);
 
 });
-
-
-app.listen(PORT,function(){
+db.sequelize.sync().then(function(){
+	app.listen(PORT,function(){
 	console.log('Express Listening on port '+PORT+'           !');
-}) ;                              
+}) ;  
+
+});
+
+
+                            
