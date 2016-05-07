@@ -156,31 +156,45 @@ app.delete('/todos/:id', function(req, res){
 
 });
 app.put('/todos/:id', function (req, res){
+	//var matchedTodo=_.findWhere(todos, {id: todoId});
+	var todoId=parseInt(req.params.id,10);
 
-	
-	var matchedTodo=_.findWhere(todos, {id: todoId});
 	var body=_.pick(req.body,'description','completed');
-	var validAttributes={};
-	if(!matchedTodo){
-		return res.status(404).send();//404-not found 400-bad syntax.
-	}
+	var attributes={};
+	// if(!matchedTodo){
+	// 	return res.status(404).send();//404-not found 400-bad syntax.
+	// }
 //basically we're checking if we have an id that matches any one id that is already present.
-	if(body.hasOwnProperty('completed')&&_.isBoolean(body.completed)){
-		validAttributes.completed=body.completed;
-	}else if(body.hasOwnProperty('completed')){
-		//bad
-		return res.status(400).send();
-}
-if(body.hasOwnProperty('description')&&_.isString(body.description)&&body.description.trim().length>0){
-validAttributes.description=body.description;
+	if(body.hasOwnProperty('completed')){
+		attributes.completed=body.completed;
+									}
 
-}else if(body.hasOwnProperty('description')){
-	return res.status(400).send();
+if(body.hasOwnProperty('description')){
+attributes.description=body.description;
 }
-_.extend(matchedTodo,validAttributes);//first is the original destination object, second is the object you want to use to override properties
-res.json(matchedTodo);
+// _.extend(matchedTodo,validAttributes);//first is the original destination object, second is the object you want to use to override properties
+// res.json(matchedTodo);
+db.todo.findById(todoId).then(function(todo){
+	//-----------XXXXXXXXXXXXX----//
+if(todo){
+	todo.update(attributes).then(function (todo){
+	res.json(todo.toJSON());  //if todo.update goes well
+//--------------XXXXXXXXXXXXXXXXXX---------
+}, function (e){  //if todo.update goes poorly
+	res.status(400).json(e);// bad syntax error. user should change input;//param is the object of the attributes that you want to update
+});
+}else{
+	res.status(404).send();                // findbyId went well
+}     //--------------XXXXXXXXXXXXXXXXXX----------------------------
+}, function(){
+	res.status(500).send();            //findbyId didnt go well
+	//--------------XXXXXXXXXXXXXXXXXX---------
 
 });
+//--------------XXXXXXXXXXXXXXXXXX---------
+
+});
+
 db.sequelize.sync().then(function(){
 	app.listen(PORT,function(){
 	console.log('Express Listening on port '+PORT+'           !');
