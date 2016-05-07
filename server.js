@@ -45,14 +45,20 @@ var queryParams=req.query;
 });
 //GET/todos/:id
 app.get('/todos/:id', function (req,res){
-	
+	var todoId=parseInt(req.params.id,10); // two kinds of error. onne is there is no todo, the other(500) is a problem with the server , like it crashed etc.
+	db.todo.findById(todoId).then(function (todo){
+		if(!!todo){ //this runs only if theres a todo item. in case of a normal todo, 1! flips it to false and another flips it to true. in case of a null
+			//1 ! flips it to true, the 2nd! flips it to false.
+			res.json(todo.toJSON());
+		}else{
+			res.status(404).send();
+		}
 
+	},function(e){
+		res.status(500).send();
 
-
-
-
-	var todoId=parseInt(req.params.id,10);
-	var matchedTodo=_.findWhere(todos,{id: todoId}); //first param is the array, second is the object to search through that array
+	});
+	//var matchedTodo=_.findWhere(todos,{id: todoId}); //first param is the array, second is the object to search through that array
 	//^this line just replaced the 4 below. boooM
 	// var matchedTodo;
 	// todos.forEach(function (todo){
@@ -61,14 +67,15 @@ app.get('/todos/:id', function (req,res){
 	// 	}
 
 	// });
-	if(matchedTodo){
 
-		res.json(matchedTodo);
-	}else{
-		//res.status(404).send();
-		res.send('Its not there.Just accept it ');
-	}
-	//Iterate through the todos array.Find the match.
+	// if(matchedTodo){
+
+	// 	res.json(matchedTodo);
+	// }else{
+	// 	//res.status(404).send();
+	// 	res.send('Its not there.Just accept it ');
+	// }
+	// //Iterate through the todos array.Find the match.
 
 	
 //res.send('Asking for todo id of ' + req.params.id);
