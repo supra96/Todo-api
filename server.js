@@ -28,31 +28,56 @@ app.get('/', function (req,res){ //or if its not defined, then use port 3000
 // GET /todos       get all of the todos
 //Get /todos/:id    get individual todo
 app.get('/todos',function (req,res){
-var queryParams=req.query;
-	var filteredTodos=todos;//set it equal to the todos array
-	if(queryParams.hasOwnProperty('completed')&&queryParams.completed==='true'){
-		filteredTodos=_.where(filteredTodos,{completed: true});//again, 2 parameters second one is the object with completed set to true
-}else if(queryParams.hasOwnProperty('completed')&&queryParams.completed==='false'){
-	filteredTodos=_.where(filteredTodos,{completed: false});
+	var query=req.query;
+	var where={};
+	if(query.hasOwnProperty('completed')&&query.completed=='true'){
+		where.completed=true;
+	}else if(query.hasOwnProperty('completed')&&query.completed=='false'){
+		where.completed=false;
+	}
+	if(query.hasOwnProperty('q')&&query.q.length>0){//q is the query parameter you see in the address bar
+		where.description={
+			$like: '%'+query.q+'%' // sends the matched todo item as what the user typed. like q= walk
+		};
 }
+db.todo.findAll({where:where}).then(function(todos){
+	res.json(todos);
+},function(e){
+	res.status(500).send();
+});
 
-	//if hasproperty &&completed==='true'
-	//filteredTodos=_.where(filteredTodos, ?)   //?- object used to filter the todos
-	//else if has property && completed if 'false'
+
+// var queryParams=req.query;
+// 	var filteredTodos=todos;//set it equal to the todos array
+// 	if(queryParams.hasOwnProperty('completed')&&queryParams.completed==='true'){
+// 		filteredTodos=_.where(filteredTodos,{completed: true});//again, 2 parameters second one is the object with completed set to true
+// }else if(queryParams.hasOwnProperty('completed')&&queryParams.completed==='false'){
+// 	filteredTodos=_.where(filteredTodos,{completed: false});
+// }
+
+// 	//if hasproperty &&completed==='true'
+// 	//filteredTodos=_.where(filteredTodos, ?)   //?- object used to filter the todos
+// 	//else if has property && completed if 'false'
 
 
-	res.json(filteredTodos);//every todo item is returned no matter what query parameter you have
+// 	res.json(filteredTodos);//every todo item is returned no matter what query parameter you have
 });
 //GET/todos/:id
 app.get('/todos/:id', function (req,res){
-	
+	var todoId=parseInt(req.params.id,10); // two kinds of error. onne is there is no todo, the other(500) is a problem with the server , like it crashed etc.
+	db.todo.findById(todoId).then(function (todo){
+		if(!!todo){ //this runs only if theres a todo item. in case of a normal todo, 1! flips it to false and another flips it to true. in case of a null
+			//1 ! flips it to true, the 2nd! flips it to false.
+			res.json(todo.toJSON());
+		}else{
+			res.status(404).send();
+		}
 
+	},function(e){
+		res.status(500).send();
 
-
-
-
-	var todoId=parseInt(req.params.id,10);
-	var matchedTodo=_.findWhere(todos,{id: todoId}); //first param is the array, second is the object to search through that array
+	});
+	//var matchedTodo=_.findWhere(todos,{id: todoId}); //first param is the array, second is the object to search through that array
 	//^this line just replaced the 4 below. boooM
 	// var matchedTodo;
 	// todos.forEach(function (todo){
@@ -61,14 +86,15 @@ app.get('/todos/:id', function (req,res){
 	// 	}
 
 	// });
-	if(matchedTodo){
 
-		res.json(matchedTodo);
-	}else{
-		//res.status(404).send();
-		res.send('Its not there.Just accept it ');
-	}
-	//Iterate through the todos array.Find the match.
+	// if(matchedTodo){
+
+	// 	res.json(matchedTodo);
+	// }else{
+	// 	//res.status(404).send();
+	// 	res.send('Its not there.Just accept it ');
+	// }
+	// //Iterate through the todos array.Find the match.
 
 	
 //res.send('Asking for todo id of ' + req.params.id);

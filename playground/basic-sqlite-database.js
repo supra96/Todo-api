@@ -25,8 +25,16 @@ completed:{
 }
 
 })
-sequelize.sync({force: true}).then(function(){ //force true recreates every tables from scratch
+sequelize.sync().then(function(){
 	console.log('Everything is synced');
+
+	Todo.findById(3).then(function(todo){
+		if(todo){
+			console.log(todo.toJSON());
+		}else{
+			console.log('Todo not found');
+		}
+	});
 
 
 // 	Todo.create({    //create is a method that set the attributes to your object
