@@ -5,7 +5,8 @@ var todoNextId=1;
 var _=require('underscore');
 var db=require('./db.js');
 app.use(bodyParser.json());
-var todos= []                     //array
+var todos= [];                  //array
+var bcrypt=require('bcrypt');
 // 	{id:1, //int type
 // 	description: 'Meet mom for dinner', //string type
 // 	completed: false  //boolean type
@@ -192,6 +193,28 @@ if(todo){
 
 });
 //--------------XXXXXXXXXXXXXXXXXX---------
+
+});
+
+app.post('/users',function (req,res){
+	var body=_.pick(req.body,'email', 'password');
+	db.user.create(body).then(function(user){
+     res.json(user.toPublicJSON());
+	},function(e){
+		res.status(400).json(e); //.json(e)
+	});
+
+});
+//use post / good url -Posturl is POSTusers/login. i set the methos in postman rn
+
+
+app.post('/users/login', function (req, res){
+ var body=_.pick(req.body,'email','password');
+ db.user.authenticate(body).then(function (user){
+ 	res.header('Auth',user.generateToken('authentication')).json(user.toPublicJSON());
+	}, function(){
+		res.status(401).send();
+ });
 
 });
 

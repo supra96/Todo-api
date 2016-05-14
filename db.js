@@ -17,7 +17,8 @@ else{//when app isnt on heroku
 }
 
 var db={};
-db.todo=sequelize.import(__dirname+'/models/todo.js') //set a todo property on the db object. and toss the file in that directory.
+db.user=sequelize.import(__dirname+'/models/user.js');
+db.todo=sequelize.import(__dirname+'/models/todo.js') ;//set a todo property on the db object. and toss the file in that directory.
 db.sequelize=sequelize;
 db.Sequelize=sequelize;
 module.exports=db; //set it equal to an object to export multiple stuff like the above 2 lines
