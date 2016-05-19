@@ -7,6 +7,8 @@ var db=require('./db.js');
 app.use(bodyParser.json());
 var todos= [];                  //array
 var bcrypt=require('bcrypt');
+app.use(express.static(__dirname+'/public'));
+
 // 	{id:1, //int type
 // 	description: 'Meet mom for dinner', //string type
 // 	completed: false  //boolean type
@@ -200,6 +202,8 @@ app.post('/users',function (req,res){
 	var body=_.pick(req.body,'email', 'password');
 	db.user.create(body).then(function(user){
      res.json(user.toPublicJSON());
+     res.send('new chutiya');
+     console.log("New user joined!");
 	},function(e){
 		res.status(400).json(e); //.json(e)
 	});
